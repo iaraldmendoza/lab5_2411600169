@@ -19,10 +19,10 @@ Create the MySQL database lab5_facinal_2411600169. Configure database credential
 
 Open http://127.0.0.1:8000.
 
-Local demo email: student@example.test
-Local demo password: Lab5Demo!2026
+Local inventory manager email: manager@facinalhardware.test
+Local inventory manager password: Hardware!2026
 
-Replace the public demo account before deployment to a shared server.
+Replace the published local credentials before deployment to a shared server.
 
 ## MVC file map
 
@@ -31,7 +31,7 @@ Replace the public demo account before deployment to a shared server.
 - Validation: app/Http/Requests/ProductRequest.php checks fields and normalizes SKUs.
 - Views: resources/views/products contains the catalog, details, and shared create/edit form.
 - Routes: routes/web.php applies authentication middleware.
-- Schema and sample data: database/migrations and database/seeders.
+- Schema and opening inventory: database/migrations and database/seeders.
 - Theme and responsive layout: public/css/custom.css.
 
 Low stock means quantity at or below reorder_level, including zero. Out-of-stock items are counted separately too. Quantity edits create stock movements. Product deletion also deletes its stock history.

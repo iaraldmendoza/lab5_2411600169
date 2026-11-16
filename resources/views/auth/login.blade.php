@@ -44,4 +44,5 @@
             </x-primary-button>
         </div>
     </form>
+<p class="muted" style="font-size:12px;margin-top:24px">New to the store? <a href="{{ route('register') }}">Create an account</a></p>
 </x-guest-layout>

@@ -1,30 +1,3 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <title>{{ config('app.name', 'Laravel') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
-            </div>
-        </div>
-    </body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Account access | Facinal Hardware</title><link rel="stylesheet" href="{{ asset('css/custom.css') }}"></head>
+<body class="auth-body"><main class="auth-shell"><section class="auth-story"><a class="brand" style="text-decoration:none;color:white" href="{{ url('/') }}">FACINAL<span> HARDWARE</span></a><div class="eyebrow" style="margin-top:30px">Stock smarter. Build better.</div><h1>Your inventory,<br>under control.</h1><p>A clear view of your materials, tools, and supplies. Keep every project moving with stock you can count on.</p><p style="margin-top:45px">Laboratory Exercise 5<br>Laravel MVC Inventory Management</p></section><section class="auth-card"><h2>{{ request()->routeIs('login') ? 'Welcome back' : 'Account access' }}</h2><p class="muted" style="margin-bottom:26px">{{ request()->routeIs('login') ? 'Log in to manage your hardware inventory.' : 'Manage your Facinal Hardware account.' }}</p>{{ $slot }}</section></main></body></html>

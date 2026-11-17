@@ -1,47 +1,90 @@
-# Lab 5 Hardware Inventory System
+# Lab 6 Real Time Inventory Tracking
 
-A fresh Laravel 12 project for Laboratory Exercise 5, with Breeze authentication, product CRUD, stock alerts, transaction history, a database dashboard, and printable/CSV reports.
+This project extends Lab 5 with audited stock movements, Eloquent observers, queued low-stock notifications, physical-count reconciliation, JSON endpoints, and a dashboard that polls every 30 seconds.
 
-## Setup
+## Requirements and setup
 
-Requires PHP 8.2+, Composer, Node.js/npm, and MySQL/MariaDB. In this folder run:
+Use PHP 8.2+, Composer, Node.js/npm, and MySQL or MariaDB.
 
     composer install
     copy .env.example .env
     php artisan key:generate
-
-Create the MySQL database lab5_facinal_2411600169. Configure database credentials in .env. Normal XAMPP uses port 3306; the isolated development database for this lab uses 3307.
-
-    npm install
+    npm ci
     npm run build
+
+Create a database named lab6_facinal_2411600169. Update the DB_* values in .env.
+Standard XAMPP normally uses port 3306. The isolated database on the development laptop uses 3307.
+
     php artisan migrate --seed
-    php artisan serve
+    php artisan serve --host=127.0.0.1 --port=8006
 
-Open http://127.0.0.1:8000.
+In a second terminal, start the queue worker:
 
-Local inventory manager email: manager@facinalhardware.test
-Local inventory manager password: Hardware!2026
+    php artisan queue:work --sleep=1 --tries=3
 
-Replace the published local credentials before deployment to a shared server.
+Open http://127.0.0.1:8006.
 
-## MVC file map
+## Local lab accounts
 
-- Model: app/Models/Product.php defines fields, casts, stock status, and relationships.
-- Controller: app/Http/Controllers/ProductController.php implements seven resource actions.
-- Validation: app/Http/Requests/ProductRequest.php checks fields and normalizes SKUs.
-- Views: resources/views/products contains the catalog, details, and shared create/edit form.
-- Routes: routes/web.php applies authentication middleware.
-- Schema and opening inventory: database/migrations and database/seeders.
-- Theme and responsive layout: public/css/custom.css.
+Administrator:
+- Email: manager@facinalhardware.test
+- Password: Hardware!2026
 
-Low stock means quantity at or below reorder_level, including zero. Out-of-stock items are counted separately too. Quantity edits create stock movements. Product deletion also deletes its stock history.
+Warehouse staff:
+- Email: clerk@facinalhardware.test
+- Password: Warehouse!2026
 
-## Verification
+These credentials are published for local coursework. Replace them before shared deployment. Public registration creates staff accounts; it cannot assign administrator privileges.
 
-25 browser checks passed: protected routes, incorrect password, login, dashboard totals, search/filtering, validation, unique SKU, CSRF, CRUD, stock history, CSV export, mobile overflow, and logout.
+## Stock rules
 
-Seed totals: 18 products; 6 low-stock alerts; 2 out-of-stock products; PHP 87,190.00 stock value.
+- Stock In and Stock Out accept positive whole-number quantities.
+- The observer calculates the signed change and stores before/after balances.
+- InventoryService wraps the audit insertion and stock update in one database transaction and locks the product row.
+- Excessive stock-out and unsafe reversal requests fail without changing stock or the audit log.
+- Physical counts record only the signed difference and are restricted to administrators.
+- Reversing a movement creates a compensating record. The original is retained and cannot be reversed twice.
+- Product deletion archives the product with soft deletes and preserves its transactions.
+- Stock movements cannot be edited or deleted through the model's normal lifecycle.
 
-## Version control
+## Notifications and live data
 
-Do not commit .env, vendor, node_modules, cache files, or logs. Install dependencies and generate an application key after cloning.
+InventoryChanged dispatches after a successful commit. The listener queues database and email notifications for administrators. A product flag prevents duplicate alerts during one continuous low-stock episode. Replenishment above the reorder level resets that flag.
+
+MAIL_MAILER=log is the default for this local lab. Email content is written to storage/logs/laravel.log; no external email service is configured. Database alerts still appear through the queue worker.
+
+Authenticated, same-origin endpoints:
+- GET /api/dashboard/stats
+- GET /api/products/low-stock
+- GET /api/transactions/recent
+- GET /api/products/{product}
+
+public/js/dashboard.js polls the three dashboard endpoints every 30 seconds, updates text safely, animates changed totals, displays the last update time, and recovers after network failures. Refresh now requests an immediate update.
+
+## Main source files
+
+- app/Services/InventoryService.php: atomic stock operations and reversal rules
+- app/Observers/InventoryTransactionObserver.php: automatic quantities and running balances
+- app/Events/InventoryChanged.php and app/Listeners/SendLowStockAlerts.php: events and notifications
+- app/Notifications/LowStockNotification.php: queued database and mail channels
+- app/Http/Controllers/InventoryTransactionController.php: stock workflow and filters
+- app/Http/Resources: JSON data shape
+- resources/views/transactions: movement, adjustment, and audit views
+- public/js/stock-form.js: AJAX stock preview and quantity limits
+- public/js/dashboard.js: 30-second polling
+
+## Reports
+
+The reports page provides dated stock movements, current low stock, and current valuation. Each report exports to CSV. Print / save PDF uses the browser print dialog.
+
+## Tests
+
+    php artisan test
+
+phpunit.xml uses SQLite in memory so tests do not modify the working MySQL database. InventoryTrackingTest covers movement balances, overselling rollback, actor identity, staff restrictions, reversals, archiving, and authenticated API access.
+
+## Important operational details
+
+Keep .env, dependencies, cache files, and logs out of version control. Keep the queue worker running for alerts. These pages refresh on a 30-second polling interval; they do not use WebSockets. Email sending requires a separately configured SMTP service.
+
+The automatic stock update is implemented by the Eloquent observer requested in the activity. A second SQL trigger is intentionally not used because applying both would double-count stock changes.

@@ -28,6 +28,8 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    public function transactions(){return $this->hasMany(InventoryTransaction::class);}
+    public function isAdmin():bool{return $this->role==='admin';}
     protected $hidden = [
         'password',
         'remember_token',

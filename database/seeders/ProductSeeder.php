@@ -24,10 +24,12 @@ class ProductSeeder extends Seeder {
             ['name'=>'Red Oxide Primer 1 L','sku'=>'PNT-002','category'=>'Paint','quantity'=>3,'reorder_level'=>5,'unit_price'=>210,'supplier'=>'Colorworks','description'=>'One-liter red oxide primer for preparing metal surfaces.'],
             ['name'=>'Paint Roller 9 inch','sku'=>'PNT-003','category'=>'Paint','quantity'=>24,'reorder_level'=>6,'unit_price'=>135,'supplier'=>'Colorworks','description'=>'Nine-inch paint roller for applying paint to walls and ceilings.'],
         ];
-        foreach($products as $data) {
+
+        $manager=\App\Models\User::where('email','manager@facinalhardware.test')->firstOrFail();
+        foreach($products as $data){
+            $opening=(int)$data['quantity'];$data['quantity']=0;
             $product=Product::firstOrCreate(['sku'=>$data['sku']],$data);
-            if($product->wasRecentlyCreated && $product->quantity>0)
-                $product->transactions()->create(['type'=>'in','quantity'=>$product->quantity,'reference'=>'Opening inventory']);
+            if($product->wasRecentlyCreated&&$opening>0)app(\App\Services\InventoryService::class)->record($product->id,'in',$opening,$manager,'Opening inventory');
         }
     }
 }

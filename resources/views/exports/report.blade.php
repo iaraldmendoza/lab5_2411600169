@@ -1,0 +1,4 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>{{ $title }}</title><style>
+body{font-family:DejaVu Sans,sans-serif;font-size:9px;color:#17343c}h1{font-size:20px;margin-bottom:5px}p{color:#64767e}table{width:100%;border-collapse:collapse}thead{display:table-header-group}tr{page-break-inside:avoid}th{background:#103e4c;color:#fff;text-align:left}td,th{padding:7px;border:1px solid #dce6e8}tbody tr:nth-child(even){background:#f4f7f7}
+</style></head><body><h1>FACINAL HARDWARE</h1><h2>{{ $title }}</h2><p>Generated {{ now()->format('d M Y H:i') }} · {{ count($rows) }} record(s) · Currency PHP</p><table><thead><tr>@foreach ($headings as $heading)<th>{{ $heading }}</th>@endforeach</tr></thead><tbody>@forelse ($rows as $row)<tr>@foreach ($row as $cell)<td>{{ $cell }}</td>@endforeach</tr>@empty<tr><td colspan="{{ count($headings) }}">No records match these filters.</td></tr>@endforelse</tbody></table></body></html>

@@ -1,90 +1,58 @@
-# Lab 6 Real Time Inventory Tracking
+# Laboratory Exercise 7 - Facinal Hardware
 
-This project extends Lab 5 with audited stock movements, Eloquent observers, queued low-stock notifications, physical-count reconciliation, JSON endpoints, and a dashboard that polls every 30 seconds.
+Laravel 12 / PHP 8.2 inventory replenishment and supplier management, extending the previous inventory system. This branch is `lab7-procurement`.
 
-## Requirements and setup
+## Features
 
-Use PHP 8.2+, Composer, Node.js/npm, and MySQL or MariaDB.
+- Supplier directory with contact details, search, active filters, pagination, soft deletion and administrator restoration. Historical orders retain their supplier.
+- Preferred and alternative supplier agreements with unit cost, minimum quantity, package size and lead time.
+- Purchase orders with price snapshots, tax, draft/pending/approved/sent/partially received/received/rejected/cancelled states and activity history.
+- Policy authorization: buyers create orders; another manager approves; orders of PHP 50,000 or more require a manager and a different administrator. Warehouse staff receive goods.
+- Goods received notes, partial deliveries, damaged units and replacement deliveries. Database transactions and row locks keep receipts and stock consistent. UUID receipt keys prevent double posting.
+- Reorder point = average daily usage x supplier lead time + safety stock. Outstanding orders count toward inventory position. Reorders are grouped by supplier, respect package/minimum rules, and remain drafts for human review.
+- Four queued, branded emails, including a purchase order PDF attachment. Mailpit captures local messages without sending external email.
+- Four dashboard widgets with View Composers, authenticated JSON endpoints, 30-second polling, retry feedback and short cache lifetimes.
+- Supplier performance charts and metrics, advanced filters, and CSV/PDF exports for products, orders, transactions and supplier performance. CSV formula injection is escaped.
 
-    composer install
-    copy .env.example .env
-    php artisan key:generate
-    npm ci
-    npm run build
+## Setup
 
-Create a database named lab6_facinal_2411600169. Update the DB_* values in .env.
-Standard XAMPP normally uses port 3306. The isolated database on the development laptop uses 3307.
+Use PHP 8.2+, Composer, MySQL and Node.js. Install dependencies with `composer install` and `npm ci`. Copy `.env.example` to `.env`, set your own database credentials, then run:
 
-    php artisan migrate --seed
-    php artisan serve --host=127.0.0.1 --port=8006
+```sh
+php artisan key:generate
+php artisan migrate --seed
+npm run build
+php artisan serve --port=8007
+```
 
-In a second terminal, start the queue worker:
+The local installation uses MySQL on port 3307 and database `lab7_facinal_2411600169`. It is separate from the previous lab databases. Do not run destructive reset commands against another database.
 
-    php artisan queue:work --sleep=1 --tries=3
+For local email, run Mailpit with SMTP port 1027 and web port 8027. Set `MAIL_HOST=127.0.0.1`, `MAIL_PORT=1027`, `MAIL_MAILER=smtp`, and `QUEUE_CONNECTION=database`, then run:
 
-Open http://127.0.0.1:8006.
+```sh
+php artisan queue:work --tries=3 --timeout=60
+php artisan inventory:check-reorders
+php artisan schedule:list
+php artisan schedule:work
+```
 
-## Local lab accounts
+The scheduler checks daily at 08:00 Asia/Manila. Keep `schedule:work` running locally; on a server, run `php artisan schedule:run` once a minute from cron or Task Scheduler. Keep a queue worker running for mail. The command logs errors and queues an alert; inspect `storage/logs` and failed jobs if mail delivery fails. No automatic supplier dispatch occurs.
 
-Administrator:
-- Email: manager@facinalhardware.test
-- Password: Hardware!2026
+## Seeded local accounts
 
-Warehouse staff:
-- Email: clerk@facinalhardware.test
-- Password: Warehouse!2026
+| Role | Email | Password |
+| --- | --- | --- |
+| Administrator | manager@facinalhardware.test | Hardware!2026 |
+| Purchasing manager | purchasing.manager@facinalhardware.test | Purchasing!2026 |
+| Buyer | buyer@facinalhardware.test | Purchasing!2026 |
+| Warehouse clerk | clerk@facinalhardware.test | Warehouse!2026 |
 
-These credentials are published for local coursework. Replace them before shared deployment. Public registration creates staff accounts; it cannot assign administrator privileges.
+These are local classroom accounts with fictitious addresses. Change or remove them before deployment. The seeder creates 18 products, six supplier catalogs and varied purchasing history; the browser verification added Northline Fasteners and a fully received order.
 
-## Stock rules
+## Validation
 
-- Stock In and Stock Out accept positive whole-number quantities.
-- The observer calculates the signed change and stores before/after balances.
-- InventoryService wraps the audit insertion and stock update in one database transaction and locks the product row.
-- Excessive stock-out and unsafe reversal requests fail without changing stock or the audit log.
-- Physical counts record only the signed difference and are restricted to administrators.
-- Reversing a movement creates a compensating record. The original is retained and cannot be reversed twice.
-- Product deletion archives the product with soft deletes and preserves its transactions.
-- Stock movements cannot be edited or deleted through the model's normal lifecycle.
+`php artisan test` runs 65 tests, including rollback after a stock-update exception, role restrictions, two-level approvals, partial receipts, duplicate receipt prevention, reorder calculations, supplier history, metrics, filters and real PDF/CSV output. An additional 18 browser checks passed through the live MySQL application, including an actual create/approve/send/receive workflow and all eight export combinations.
 
-## Notifications and live data
+The provided Windows session reports incorrect PHP filesystem readability/writability flags despite successful file access. Its dependency manifest and PHPUnit bootstraps were prepared outside application source as a local runtime workaround. On a normal PHP installation, standard Composer and Artisan commands apply. No Laravel framework files were changed.
 
-InventoryChanged dispatches after a successful commit. The listener queues database and email notifications for administrators. A product flag prevents duplicate alerts during one continuous low-stock episode. Replenishment above the reorder level resets that flag.
-
-MAIL_MAILER=log is the default for this local lab. Email content is written to storage/logs/laravel.log; no external email service is configured. Database alerts still appear through the queue worker.
-
-Authenticated, same-origin endpoints:
-- GET /api/dashboard/stats
-- GET /api/products/low-stock
-- GET /api/transactions/recent
-- GET /api/products/{product}
-
-public/js/dashboard.js polls the three dashboard endpoints every 30 seconds, updates text safely, animates changed totals, displays the last update time, and recovers after network failures. Refresh now requests an immediate update.
-
-## Main source files
-
-- app/Services/InventoryService.php: atomic stock operations and reversal rules
-- app/Observers/InventoryTransactionObserver.php: automatic quantities and running balances
-- app/Events/InventoryChanged.php and app/Listeners/SendLowStockAlerts.php: events and notifications
-- app/Notifications/LowStockNotification.php: queued database and mail channels
-- app/Http/Controllers/InventoryTransactionController.php: stock workflow and filters
-- app/Http/Resources: JSON data shape
-- resources/views/transactions: movement, adjustment, and audit views
-- public/js/stock-form.js: AJAX stock preview and quantity limits
-- public/js/dashboard.js: 30-second polling
-
-## Reports
-
-The reports page provides dated stock movements, current low stock, and current valuation. Each report exports to CSV. Print / save PDF uses the browser print dialog.
-
-## Tests
-
-    php artisan test
-
-phpunit.xml uses SQLite in memory so tests do not modify the working MySQL database. InventoryTrackingTest covers movement balances, overselling rollback, actor identity, staff restrictions, reversals, archiving, and authenticated API access.
-
-## Important operational details
-
-Keep .env, dependencies, cache files, and logs out of version control. Keep the queue worker running for alerts. These pages refresh on a 30-second polling interval; they do not use WebSockets. Email sending requires a separately configured SMTP service.
-
-The automatic stock update is implemented by the Eloquent observer requested in the activity. A second SQL trigger is intentionally not used because applying both would double-count stock changes.
+The private `.env`, installed dependencies, logs and caches are excluded from Git. Composer/package lockfiles, migrations, seeders, tests and source assets are included.

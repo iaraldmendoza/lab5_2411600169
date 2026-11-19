@@ -7,3 +7,38 @@
 
 /* Lab 6 transaction tracking */
 .section-gap{margin-top:24px}.live-status{display:flex;gap:15px;align-items:center;flex-wrap:wrap;margin:0 0 23px;font-size:12px;color:var(--muted)}.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#169c70;margin-right:6px}.small-button{background:#edf5f4;color:var(--teal);border:1px solid var(--line);border-radius:5px;padding:5px 10px;cursor:pointer}.stock-readout{background:#edf5f4;border-radius:7px;padding:15px;margin-bottom:20px}.stock-alert{display:block;padding:12px 0;border-bottom:1px solid var(--line);text-decoration:none}.stock-alert strong,.stock-alert span{display:block}.stock-alert span{font-size:12px;color:var(--muted);margin-top:3px}.notification-menu,.user-menu{position:relative;font-size:12px}.notification-menu summary,.user-menu summary{cursor:pointer;color:white;list-style:none}#notification-count{display:inline-block;min-width:18px;text-align:center;border-radius:20px;background:var(--gold);color:var(--navy);padding:1px 4px}.notification-popover{position:absolute;right:0;top:30px;width:300px;max-width:85vw;z-index:10;background:white;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:18px;box-shadow:0 12px 28px #103e4c25}.notification-popover article{border-bottom:1px solid var(--line);padding:10px 0}.notification-popover p{margin:5px 0;font-size:12px}.account{gap:18px}.stat-updated{animation:stockflash .7s ease}@keyframes stockflash{50%{color:var(--teal);transform:translateY(-2px)}}button:disabled{opacity:.55;cursor:wait}.site-nav nav{gap:18px}@media(max-width:600px){.site-nav{gap:12px}.account{gap:12px}.notification-popover{position:fixed;left:5vw;right:auto;top:100px;width:90vw}.two-col{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.stat-updated{animation:none}}
+
+
+/* Procurement pages share the Facinal Hardware palette. */
+.site-nav nav { gap: 14px; font-size: 13px; }
+.site-nav .account { font-size: 12px; }
+.procurement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.procurement-widget { min-width: 0; }
+.widget-number { display: block; font-size: 48px; color: var(--teal); margin: 14px 0; }
+.widget-list article { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.widget-list article p { margin: 4px 0; color: var(--muted); font-size: 13px; }
+.widget-list article a { font-weight: 700; text-decoration: none; }
+.widget-list article small { color: var(--muted); }
+.section-gap { margin-bottom: 24px; }
+.order-totals { margin: 24px 0 24px auto; max-width: 360px; }
+.order-totals div { display: flex; justify-content: space-between; gap: 20px; padding: 8px; }
+.order-totals div:last-child { border-top: 2px solid var(--teal); font-size: 20px; font-weight: 800; }
+.order-totals dd { margin: 0; }
+.po-lines select { min-width: 260px; width: 100%; padding: 9px; border: 1px solid var(--line); border-radius: 6px; }
+.po-lines small { display: block; margin-top: 5px; }
+.compact-input { max-width: 150px; width: 100%; padding: 9px; border: 1px solid var(--line); border-radius: 6px; }
+.checkbox-label { display: flex !important; align-items: center; gap: 10px; }
+.checkbox-label input { width: auto !important; }
+.rejection-form { max-width: 580px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.status-draft, .status-cancelled { background: #edf1f2; color: #52646b; }
+.status-pending, .status-partially_received { background: #fff0c8; color: #86540a; }
+.status-approved, .status-received { background: #e2f5ec; color: #16644b; }
+.status-sent { background: #e4f0fa; color: #1a6090; }
+.status-rejected { background: #fde7e9; color: #a62836; }
+.late-bar { background: #c97725; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 850px) {
+    .procurement-grid { grid-template-columns: 1fr; }
+    .site-nav nav { gap: 12px; }
+    .po-lines select { min-width: 220px; }
+}

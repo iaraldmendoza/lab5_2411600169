@@ -10,7 +10,8 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -28,8 +29,14 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    public function transactions(){return $this->hasMany(InventoryTransaction::class);}
-    public function isAdmin():bool{return $this->role==='admin';}
+    public function transactions()
+    {
+        return $this->hasMany(InventoryTransaction::class);
+    }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
     protected $hidden = [
         'password',
         'remember_token',
@@ -46,5 +53,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+
+    public function isManager(): bool
+    {
+        return in_array($this->role, ['manager', 'admin'], true);
+    }
+
+    public function canReceiveOrders(): bool
+    {
+        return in_array($this->role, ['warehouse', 'admin'], true);
     }
 }
